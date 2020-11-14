@@ -9,5 +9,11 @@
     $method = $_SERVER["REQUEST_METHOD"]; 
 
     $obj = new Api();
-    $obj->ShowRoutes();
+    
+    try {
+        $obj->route($request, $method);
+    }
+    catch(Exception $ex) {
+
+    }
 ?>

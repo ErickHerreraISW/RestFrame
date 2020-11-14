@@ -16,13 +16,20 @@
 
             $this->registerRoute(Api::USER_API_ENDPOINT . "sign_in", array(
                 "httpMethod" => "POST",
-                "controller" => "Perro",
-                "callBack"   => "Perrito"
+                "controller" => "TestController",
+                "callBack"   => "postFunction"
             ));
         }
 
         public function ShowRoutes() {
             var_dump($this->routes_array);
+        }
+
+        public function route($request_uri, $request_method) {
+
+            $modified_request_uri = str_replace("/RestFrame", "", $request_uri);
+
+            $this->executeRoute($modified_request_uri, $request_method);
         }
     }
 ?>

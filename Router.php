@@ -4,6 +4,10 @@
 
     require_once "Common/Exception/NotFoundException.php";
 
+    // Controllers
+
+    require_once "Controllers/TestController.php";
+
     class Router {
 
         protected $routes_array;
@@ -29,7 +33,9 @@
 
             if(($route_result = $this->searchRoute($request_url)) instanceof RouteModel) {
 
-                if($route_result->getRouteHttpMethod() != $request_method) {
+                $route_http_method = strtoupper($route_result->getRouteHttpMethod());
+
+                if($route_http_method != strtoupper($request_method)) {
                     
                     throw new NotFoundException("Invalid Http Method");
                 }
@@ -38,6 +44,10 @@
                 $callback_name = $route_result->getRouteMethodName();
 
                 $controller_obj = new $controller_name();
+
+                if($route_http_method == "POST") {
+                    return $controller_obj->$callback_name($_POST);
+                }
 
                 return $controller_obj->$callback_name();
             }
