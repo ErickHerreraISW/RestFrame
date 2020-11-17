@@ -10,45 +10,22 @@
 
         private $route_method_name;
 
-        public function getRouteUrl() {
+        public  function __call($name, $arguments) {
             
-            return $this->route_url;
-        }
+            $prefix_method = substr($name, 0, 3);
 
-        public function setRouteUrl($route_url) {
-            
-            $this->route_url = $route_url;
-            return $this;
-        }
+            if($prefix_method == "get") {
+                
+                $remove_prefix = str_replace("get_", "", $name);
+                return $this->$remove_prefix;
+            }
 
-        public function getRouteHttpMethod() {
-            return $this->route_http_method;
-        }
+            if($prefix_method == "set") {
 
-        public function setRouteHttpMethod($route_http_method) {
-
-            $this->route_http_method = $route_http_method;
-            return $this;
-        }
-
-        public function getRouteClassObj() {
-            return $this->route_class_obj;
-        }
-
-        public function setRouteClassObj($route_class_obj) {
-            
-            $this->route_class_obj = $route_class_obj;
-            return $this;
-        }
-
-        public function getRouteMethodName() {
-            return $this->route_method_name;
-        }
-
-        public function setRouteMethodName($route_method_name) {
-            
-            $this->route_method_name = $route_method_name;
-            return $this;
+                $remove_prefix = str_replace("set_", "", $name);
+                $this->$remove_prefix = $arguments[0];
+                return $this;
+            }
         }
     }
 ?>
