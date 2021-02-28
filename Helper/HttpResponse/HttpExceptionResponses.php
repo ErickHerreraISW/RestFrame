@@ -1,17 +1,15 @@
 <?php 
 
-    //Exceptions
-    require_once "Common/Exception/NotFoundException.php";
-    require_once "Common/Exception/NotAuthorizedException.php";
-    require_once "Common/Exception/UnExpectedFailedException.php";
-    require_once "Common/Exception/MethodNotAllowedException.php";
+    namespace Helper\HttpResponse;
 
-    // Http Responses
-    require_once "HttpResponse.php";
+    use Exceptions\MethodNotAllowedException;
+    use Exceptions\NotAuthorizedException;
+    use Exceptions\NotFoundException;
+    use Exceptions\UnExpectedFailedException;
 
     class HttpExceptionResponses {
 
-        public static function exceptionResponse(Exception $exception) {
+        public static function exceptionResponse(\Exception $exception) {
 
             if($exception instanceof NotFoundException) {
                 return HttpResponses::notFound($exception->getMessage());

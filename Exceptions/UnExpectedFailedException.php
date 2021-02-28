@@ -1,6 +1,8 @@
 <?php
 
-    class UnExpectedFailedException extends Exception {
+    namespace Exceptions;
+
+    class UnExpectedFailedException extends \Exception {
         
         private $details;
 

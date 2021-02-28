@@ -1,5 +1,7 @@
 <?php
 
+    namespace Core\Model;
+
     class RouteModel {
 
         private $route_url;

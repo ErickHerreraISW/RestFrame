@@ -1,5 +1,7 @@
 <?php 
 
+    namespace Helper\HttpResponse;
+
     class HttpResponses {
 
         public static function success($data) {
