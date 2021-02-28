@@ -17,6 +17,10 @@
         public function registerRoute(string $url, array $params, array &$routes) : void
         {
 
+            if($this->searchRoute($url, $routes) instanceof RouteModel) {
+                throw new \Exception("The route '" . $url . "' already exists");
+            }
+
             $route_obj = new RouteModel();
 
             $route_obj->set_route_url($url)
@@ -38,6 +42,9 @@
          */
         public function executeRoute(string $request_url, string $request_method, array $routes) : ?mixed
         {
+            if(count($_GET) > 0) {
+                $request_url = substr($request_url, 0, strpos($request_url, '?'));
+            }
 
             if(($route_result = $this->searchRoute($request_url, $routes)) instanceof RouteModel) {
 
@@ -71,11 +78,9 @@
                     $controller_obj = $controller_name;
                 }
 
-                if($route_http_method == "POST") {
-                    return $controller_obj->$callback_name($_POST);
-                }
+                $request_params = $this->prepareRequestData($route_http_method);
 
-                return $controller_obj->$callback_name();
+                return $controller_obj->$callback_name($request_params);
             }
 
             throw new RestFrameNotFoundException("Route Not Found");
@@ -98,6 +103,35 @@
             }
 
             return null;
+        }
+
+        private function prepareRequestData($http_method) : array
+        {
+            $params = array();
+
+            switch($http_method) {
+
+                case "POST":
+                    $content_type = getallheaders()["Content-Type"];
+
+                    if(preg_match("/application\/json/i", $content_type)) {
+
+                        $json_params = json_decode(file_get_contents('php://input'));
+                        $params = (array)$json_params;
+                    }
+
+                    if(preg_match("/multipart\/form-data/i", $content_type)) {
+                        $params = $_POST;
+                    }
+
+                break;
+
+                case "GET":
+                    $params = $_GET;
+                break;
+            }
+
+            return $params;
         }
     }
 ?>

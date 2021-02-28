@@ -26,7 +26,8 @@
             $this->testApi();
         }
 
-        private function testApi() {
+        private function testApi() : void
+        {
 
             // Register a route sending Controller as string
             $this->router->registerRoute(Routes::USER_API_ENDPOINT . "test", array(
@@ -43,7 +44,8 @@
             ), $this->routes);
         }
 
-        public function route($request_uri, $request_method) {
+        public function route($request_uri, $request_method) : void
+        {
 
             // Working in local with http://localhost/RestFrame/
             $modified_request_uri = str_replace("/RestFrame", "", $request_uri);

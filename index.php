@@ -7,8 +7,6 @@
     header("Access-Control-Allow-Origin: *");
     header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
     header("Access-Control-Allow-Methods: GET, POST");
-    
-//    var_dump(get_included_files());
 
     use Exceptions\MethodNotAllowedException;
     use Helper\HttpResponse\HttpExceptionResponses;

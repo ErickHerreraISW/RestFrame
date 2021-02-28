@@ -4,7 +4,13 @@
 
     class HttpResponses {
 
-        public static function success($data) {
+
+        /**
+         * @param mixed $data
+         * @return void
+         */
+        public static function success($data) : void
+        {
 
             http_response_code(200);
 
@@ -14,7 +20,12 @@
             ), JSON_PRETTY_PRINT);
         }
 
-        public static function notFound($data = null) {
+        /**
+         * @param mixed|null $data
+         * @return void
+         */
+        public static function notFound($data = null) : void
+        {
 
             http_response_code(404);
 
@@ -24,7 +35,12 @@
             ), JSON_PRETTY_PRINT);
         }
 
-        public static function failed($data = null) {
+        /**
+         * @param mixed|null $data
+         * @return void
+         */
+        public static function failed($data = null) : void
+        {
 
             http_response_code(417);
 
@@ -34,7 +50,12 @@
             ), JSON_PRETTY_PRINT);
         }
 
-        public static function notAuthorized($data = null) {
+        /**
+         * @param mixed|null $data
+         * @return void
+         */
+        public static function notAuthorized($data = null) : void
+        {
 
             http_response_code(401);
 
@@ -44,7 +65,12 @@
             ), JSON_PRETTY_PRINT);
         }
 
-        public static function internalError($data = null) {
+        /**
+         * @param mixed|null $data
+         * @return void
+         */
+        public static function internalError($data = null) : void
+        {
 
             http_response_code(500);
 
@@ -54,7 +80,12 @@
             ), JSON_PRETTY_PRINT);
         }
 
-        public static function methodNotAllowed($data = null) {
+        /**
+         * @param mixed|null $data
+         * @return void
+         */
+        public static function methodNotAllowed($data = null) : void
+        {
 
             http_response_code(405);
 
@@ -64,7 +95,13 @@
             ), JSON_PRETTY_PRINT);
         }
 
-        public static function customResponse($response_code, $data = null) {
+        /**
+         * @param integer $response_code
+         * @param mixed|null $data
+         * @return void
+         */
+        public static function customResponse($response_code, $data = null) : void
+        {
 
             http_response_code($response_code);
 
