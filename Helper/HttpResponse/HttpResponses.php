@@ -26,7 +26,6 @@
          */
         public static function notFound($data = null) : void
         {
-
             http_response_code(404);
 
             print json_encode(array(

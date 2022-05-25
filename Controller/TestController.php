@@ -1,66 +1,76 @@
 <?php
 
-    namespace Controller;
+namespace Controller;
 
-    use Exceptions\UnExpectedFailedException;
+use Exceptions\UnExpectedFailedException;
     use Helper\HttpResponse\HttpResponses;
     use Helper\HttpResponse\HttpExceptionResponses;
     use Service\TestService;
 
-    class TestController {
+/**
+* @Router({"Route":"/test"})
+*/
+class TestController {
 
-        public function __construct() {
+    public function __construct() {
 
-        }
+    }
 
-        public function getFunction() {
-            return "Hola Mundo";
-        }
-
-        public function postFunction($params) {
+    /**
+     * @Router({"Route":"/post-function", "Method":"POST"})
+     *
+     * @param $params
+     * @return void
+     */
+    public function postFunction($params) {
             
-            try {
-                if(!isset($params["name"])) {
-                    throw new UnExpectedFailedException(array(
-                        "message" => "Some parameters are missing",
-                        "params" => array(
-                            "name*" => "string"
-                        )
-                    ));
-                }
-
-                $name = $params["name"];
-
-                $test_service = new TestService();
-
-                return HttpResponses::success($test_service->postFunction($name));
+        try {
+            if(!isset($params["name"])) {
+                throw new UnExpectedFailedException(array(
+                    "message" => "Some parameters are missing",
+                    "params" => array(
+                        "name*" => "string"
+                    )
+                ));
             }
-            catch(\Exception $ex) {
-                return HttpExceptionResponses::exceptionResponse($ex);
-            }
+
+            $name = $params["name"];
+
+            $test_service = new TestService();
+
+            return HttpResponses::success($test_service->postFunction($name));
         }
-
-        public function postFunction2($params) {
-            
-            try {
-                if(!isset($params["name"])) {
-                    throw new UnExpectedFailedException(array(
-                        "message" => "Some parameters are missing",
-                        "params" => array(
-                            "name*" => "string"
-                        )
-                    ));
-                }
-
-                $name = $params["name"];
-
-                $test_service = new TestService();
-
-                return HttpResponses::success($test_service->postFunction($name));
-            }
-            catch(\Exception $ex) {
-                return HttpExceptionResponses::exceptionResponse($ex);
-            }
+        catch(\Exception $ex) {
+            return HttpExceptionResponses::exceptionResponse($ex);
         }
     }
-?>
+
+    /**
+     * @Router({"Route":"/post-function-2", "Method":"POST"})
+     *
+     * @param $params
+     * @return void
+     */
+    public function postFunction2($params) {
+            
+        try {
+            if(!isset($params["name"])) {
+                throw new UnExpectedFailedException(array(
+                    "message" => "Some parameters are missing",
+                    "params" => array(
+                        "name*" => "string"
+                    )
+                ));
+            }
+
+            $name = $params["name"];
+
+            $test_service = new TestService();
+
+            return HttpResponses::success($test_service->postFunction($name));
+        }
+        catch(\Exception $ex) {
+            return HttpExceptionResponses::exceptionResponse($ex);
+        }
+    }
+}

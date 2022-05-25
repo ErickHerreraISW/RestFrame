@@ -13,7 +13,8 @@
          * @param \Exception $exception
          * @return void
          */
-        public static function exceptionResponse(\Exception $exception) {
+        public static function exceptionResponse(\Exception $exception)
+        {
 
             if($exception instanceof NotFoundException) {
                 return HttpResponses::notFound($exception->getMessage());
