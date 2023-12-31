@@ -38,7 +38,9 @@ class TestController
 
             $test_service = new TestService();
 
-            return HttpResponses::success($test_service->postFunction($name));
+            return HttpResponses::success(array(
+                "data" => $test_service->postFunction($name)
+            ));
         }
         catch(\Exception $ex) {
             return HttpExceptionResponses::exceptionResponse($ex);

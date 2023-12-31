@@ -67,6 +67,7 @@ class Router {
         catch (\Exception $ex) {
 
             http_response_code(500);
+            header("Content-type: application/json; charset=utf-8");
 
             print json_encode(array(
                 "message" => $ex->getMessage(),
@@ -87,7 +88,9 @@ class Router {
                 $request_url = substr($request_url, 0, strpos($request_url, '?'));
             }
 
-            if(($route_result = $this->searchRoute($request_url)) instanceof RouteModel) {
+            $route_result = $this->searchRoute($request_url);
+
+            if(!($route_result instanceof RouteModel)) {
                 throw new RestFrameNotFoundException("Route Not Found");
             }
 
@@ -123,10 +126,6 @@ class Router {
 
             if($ref->getNumberOfParameters() > 0) {
 
-                if($ref->getParameters()[0]->getType() !== 'Request') {
-                    throw new \Exception("Controller function only can take parameters instance of Request");
-                }
-
                 $request_params = $this->prepareRequestData($route_http_method);
                 $response = $controller_obj->$callback_name($request_params);
             }
@@ -138,6 +137,7 @@ class Router {
         }
         catch (\Exception $ex) {
             http_response_code(500);
+            header("Content-type: application/json; charset=utf-8");
 
             print json_encode(array(
                 "message" => $ex->getMessage(),
@@ -183,16 +183,18 @@ class Router {
         switch($http_method) {
 
             case "POST":
-                $content_type = getallheaders()["Content-Type"];
+                $content_type = getallheaders()["Content-Type"] ?? null;
 
                 if(preg_match("/application\/json/i", $content_type)) {
 
                     $json_params = json_decode(file_get_contents('php://input'));
                     $params = (array)$json_params;
                 }
-
-                if(preg_match("/multipart\/form-data/i", $content_type)) {
+                else if(preg_match("/multipart\/form-data/i", $content_type)) {
                     $params = $_POST;
+                }
+                else {
+                    $params = [];
                 }
             break;
 
@@ -204,7 +206,7 @@ class Router {
         $request = new Request();
 
         $request->setParams($params)
-                ->setHeaders(apache_request_headers());
+                ->setHeaders(getallheaders());
 
         return $request;
     }
@@ -256,6 +258,7 @@ class Router {
         }
 
         http_response_code($response->getStatusCode());
+        header("Content-type: application/json; charset=utf-8");
 
         foreach($response->getHeaders() as $key => $value) {
             header($key . ": " . $value);
