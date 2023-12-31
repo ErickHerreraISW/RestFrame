@@ -15,7 +15,7 @@ class Router {
     public function getControllerRoutes() : void
     {
         try {
-            $controllers = scandir("./Controller");
+            $controllers = scandir("./src/Controller");
 
             unset($controllers[0]);
             unset($controllers[1]);
@@ -24,7 +24,7 @@ class Router {
 
             foreach ($controllers as $controller) {
 
-                $controller_name = "Controller\\" . explode(".", $controller)[0];
+                $controller_name = "src\\Controller\\" . explode(".", $controller)[0];
                 $reflection = new \ReflectionClass($controller_name);
 
                 $controller_route = "";
@@ -53,7 +53,8 @@ class Router {
                                     "route_url"         => $controller_route . $function_route_obj->Route,
                                     "route_http_method" => $function_route_obj->Method,
                                     "route_class_obj"   => $controller_name,
-                                    "route_method_name" => $controller_function
+                                    "route_method_name" => $controller_function,
+                                    "route_middleware"  => isset($function_route_obj->Uses) ? "src\\Middleware\\" . $function_route_obj->Uses :  null
                                 );
                             }
                         }
@@ -123,17 +124,29 @@ class Router {
             }
 
             $ref = new \ReflectionMethod($controller_name, $callback_name);
+            $request_params = $this->prepareRequestData($route_http_method);
 
-            if($ref->getNumberOfParameters() > 0) {
+            $middleware_name = $route_result->getRouteMiddleware();
 
-                $request_params = $this->prepareRequestData($route_http_method);
-                $response = $controller_obj->$callback_name($request_params);
+            if(is_string($middleware_name)) {
+                if(!class_exists($middleware_name)) {
+                    throw new \Exception("Class '" . $middleware_name . "' doesn't exists");
+                }
+
+                $middleware = new $middleware_name($request_params);
+                $response = $middleware->build();
+
+                if($response instanceof Response) {
+                    $this->prepareResponseData($response);
+                    return;
+                }
+
+                $newRequest = $middleware->getRequest();
+                $this->returnResponse($ref, $controller_obj, $callback_name, $newRequest);
             }
             else {
-                $response = $controller_obj->$callback_name();
+                $this->returnResponse($ref, $controller_obj, $callback_name, $request_params);
             }
-
-            $this->prepareResponseData($response);
         }
         catch (\Exception $ex) {
             http_response_code(500);
@@ -144,6 +157,25 @@ class Router {
                 "trace"   => $ex->getTrace()
             ), JSON_PRETTY_PRINT);
         }
+    }
+
+    /**
+     * @param \ReflectionMethod $ref
+     * @param mixed $controller_obj
+     * @param string $callback_name
+     * @param Request $request_params
+     * @return void
+     */
+    private function returnResponse(\ReflectionMethod $ref, mixed $controller_obj, string $callback_name, Request $request_params) : void
+    {
+        if($ref->getNumberOfParameters() > 0) {
+            $response = $controller_obj->$callback_name($request_params);
+        }
+        else {
+            $response = $controller_obj->$callback_name();
+        }
+
+        $this->prepareResponseData($response);
     }
 
     /**
@@ -163,7 +195,8 @@ class Router {
                 $route_obj->setRouteUrl($route->route_url)
                           ->setRouteHttpMethod($route->route_http_method)
                           ->setRouteClassObj($route->route_class_obj)
-                          ->setRouteMethodName($route->route_method_name);
+                          ->setRouteMethodName($route->route_method_name)
+                          ->setRouteMiddleware($route->route_middleware);
 
                 return $route_obj;
             }

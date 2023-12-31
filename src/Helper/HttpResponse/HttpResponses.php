@@ -1,6 +1,6 @@
 <?php 
 
-namespace Helper\HttpResponse;
+namespace src\Helper\HttpResponse;
 
 use Core\Model\Response;
 

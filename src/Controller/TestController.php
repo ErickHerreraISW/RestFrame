@@ -1,13 +1,13 @@
 <?php
 
-namespace Controller;
+namespace src\Controller;
 
 use Core\Model\Request;
 use Core\Model\Response;
-use Exceptions\UnExpectedFailedException;
-use Helper\HttpResponse\HttpResponses;
-use Helper\HttpResponse\HttpExceptionResponses;
-use Service\TestService;
+use src\Exceptions\UnExpectedFailedException;
+use src\Helper\HttpResponse\HttpExceptionResponses;
+use src\Helper\HttpResponse\HttpResponses;
+use src\Service\TestService;
 
 /**
 * @Router({"Route":"/test"})
@@ -48,7 +48,7 @@ class TestController
     }
 
     /**
-     * @Router({"Route":"/post-function-2", "Method":"POST"})
+     * @Router({"Route":"/post-function-2", "Method":"POST", "Uses": "TestMiddleware"})
      *
      * @param Request $request
      * @return Response

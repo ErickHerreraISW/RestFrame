@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceptions;
+namespace src\Exceptions;
 
 class UnExpectedFailedException extends \Exception {
         

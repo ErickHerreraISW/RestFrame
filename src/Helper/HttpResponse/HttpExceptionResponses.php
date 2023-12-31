@@ -1,12 +1,12 @@
 <?php 
 
-namespace Helper\HttpResponse;
+namespace src\Helper\HttpResponse;
 
 use Core\Model\Response;
-use Exceptions\MethodNotAllowedException;
-use Exceptions\NotAuthorizedException;
-use Exceptions\NotFoundException;
-use Exceptions\UnExpectedFailedException;
+use src\Exceptions\MethodNotAllowedException;
+use src\Exceptions\NotAuthorizedException;
+use src\Exceptions\NotFoundException;
+use src\Exceptions\UnExpectedFailedException;
 
 class HttpExceptionResponses {
 

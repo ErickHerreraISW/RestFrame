@@ -1,6 +1,6 @@
 <?php
 
-namespace Service;
+namespace src\Service;
 
 class TestService {
 
@@ -12,7 +12,7 @@ class TestService {
      * @param string $name
      * @return string
      */
-    public function postFunction($name) : string
+    public function postFunction(string $name) : string
     {
 
         return "Hi Mr./Mrs " . $name;
