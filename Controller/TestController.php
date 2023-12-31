@@ -2,29 +2,29 @@
 
 namespace Controller;
 
+use Core\Model\Request;
+use Core\Model\Response;
 use Exceptions\UnExpectedFailedException;
-    use Helper\HttpResponse\HttpResponses;
-    use Helper\HttpResponse\HttpExceptionResponses;
-    use Service\TestService;
+use Helper\HttpResponse\HttpResponses;
+use Helper\HttpResponse\HttpExceptionResponses;
+use Service\TestService;
 
 /**
 * @Router({"Route":"/test"})
 */
-class TestController {
-
-    public function __construct() {
-
-    }
-
+class TestController
+{
     /**
      * @Router({"Route":"/post-function", "Method":"POST"})
      *
-     * @param $params
-     * @return void
+     * @param Request $request
+     * @return Response
      */
-    public function postFunction($params) {
-            
+    public function postFunction(Request $request) : Response
+    {
         try {
+            $params = $request->getParams();
+
             if(!isset($params["name"])) {
                 throw new UnExpectedFailedException(array(
                     "message" => "Some parameters are missing",
@@ -48,12 +48,14 @@ class TestController {
     /**
      * @Router({"Route":"/post-function-2", "Method":"POST"})
      *
-     * @param $params
-     * @return void
+     * @param Request $request
+     * @return Response
      */
-    public function postFunction2($params) {
-            
+    public function postFunction2(Request $request) : Response
+    {
         try {
+            $params = $request->getParams();
+
             if(!isset($params["name"])) {
                 throw new UnExpectedFailedException(array(
                     "message" => "Some parameters are missing",

@@ -3,90 +3,102 @@
 namespace Core\Router;
 
 use Core\Exception\RestFrameNotFoundException;
+use Core\Model\Request;
+use Core\Model\Response;
 use Core\Model\RouteModel;
 
 class Router {
 
     /**
      * @return void
-     * @throws \ReflectionException
      */
-    public function getControllerRoutes()
+    public function getControllerRoutes() : void
     {
-        $controllers = scandir("./Controller");
+        try {
+            $controllers = scandir("./Controller");
 
-        unset($controllers[0]);
-        unset($controllers[1]);
+            unset($controllers[0]);
+            unset($controllers[1]);
 
-        $register_routes = array();
+            $register_routes = array();
 
-        foreach ($controllers as $controller) {
+            foreach ($controllers as $controller) {
 
-            $controller_name = "Controller\\" . explode(".", $controller)[0];
-            $reflection = new \ReflectionClass($controller_name);
+                $controller_name = "Controller\\" . explode(".", $controller)[0];
+                $reflection = new \ReflectionClass($controller_name);
 
-            $controller_route = "";
+                $controller_route = "";
 
-            try {
-                $controller_route_obj = $this->getRouteComment($reflection->getDocComment());
+                try {
+                    $controller_route_obj = $this->getRouteComment($reflection->getDocComment());
 
-                if($controller_route_obj != null) {
-                    $controller_route = $controller_route_obj->Route;
-                }
-            }
-            catch (\Exception $ex) {}
-
-            $controller_functions = get_class_methods($controller_name);
-
-            foreach ($controller_functions as $controller_function) {
-
-                if($controller_function != "__construct") {
-
-                    try {
-                        $function_route_obj = $this->getRouteComment($reflection->getMethod($controller_function)->getDocComment());
-
-                        if($function_route_obj != null) {
-
-                            $register_routes[] = array(
-                                "route_url"         => $controller_route . $function_route_obj->Route,
-                                "route_http_method" => $function_route_obj->Method,
-                                "route_class_obj"   => $controller_name,
-                                "route_method_name" => $controller_function
-                            );
-                        }
+                    if($controller_route_obj != null) {
+                        $controller_route = $controller_route_obj->Route;
                     }
-                    catch (\Exception $ex) {}
                 }
-            }
+                catch (\Exception $ex) {}
 
-            file_put_contents("./Cache/routes.json", json_encode($register_routes, JSON_PRETTY_PRINT));
+                $controller_functions = get_class_methods($controller_name);
+
+                foreach ($controller_functions as $controller_function) {
+
+                    if($controller_function != "__construct") {
+
+                        try {
+                            $function_route_obj = $this->getRouteComment($reflection->getMethod($controller_function)->getDocComment());
+
+                            if($function_route_obj != null) {
+
+                                $register_routes[] = array(
+                                    "route_url"         => $controller_route . $function_route_obj->Route,
+                                    "route_http_method" => $function_route_obj->Method,
+                                    "route_class_obj"   => $controller_name,
+                                    "route_method_name" => $controller_function
+                                );
+                            }
+                        }
+                        catch (\Exception $ex) {}
+                    }
+                }
+
+                file_put_contents("./Cache/routes.json", json_encode($register_routes, JSON_PRETTY_PRINT));
+            }
+        }
+        catch (\Exception $ex) {
+
+            http_response_code(500);
+
+            print json_encode(array(
+                "message" => $ex->getMessage(),
+                "trace"   => $ex->getTrace()
+            ), JSON_PRETTY_PRINT);
         }
     }
 
     /**
      * @param string $request_url
      * @param string $request_method
-     * @return mixed
-     * @throws RestFrameNotFoundException
-     * @throws \ReflectionException
-     * @throws \Exception
+     * @return void
      */
-    public function executeRoute(string $request_url, string $request_method)
+    public function executeRoute(string $request_url, string $request_method) : void
     {
-        if(count($_GET) > 0) {
-            $request_url = substr($request_url, 0, strpos($request_url, '?'));
-        }
+        try {
+            if(count($_GET) > 0) {
+                $request_url = substr($request_url, 0, strpos($request_url, '?'));
+            }
 
-        if(($route_result = $this->searchRoute($request_url)) instanceof RouteModel) {
+            if(($route_result = $this->searchRoute($request_url)) instanceof RouteModel) {
+                throw new RestFrameNotFoundException("Route Not Found");
+            }
 
-            $route_http_method = strtoupper($route_result->get_route_http_method());
+            $route_http_method = strtoupper($route_result->getRouteHttpMethod());
 
             if($route_http_method != strtoupper($request_method)) {
                 throw new RestFrameNotFoundException("Invalid Http Method");
             }
 
-            $controller_name = $route_result->get_route_class_obj();
-            $callback_name = $route_result->get_route_method_name();
+            $controller_name = $route_result->getRouteClassObj();
+            $callback_name = $route_result->getRouteMethodName();
 
             if(is_string($controller_name)) {
                 if(!class_exists($controller_name)) {
@@ -100,8 +112,6 @@ class Router {
                 throw new \Exception("Class '" . $controller_name . "' doesn't have a method called '" . $callback_name . "'");
             }
 
-            $controller_obj = null;
-
             if(is_string($controller_name)) {
                 $controller_obj = new $controller_name();
             }
@@ -109,12 +119,31 @@ class Router {
                 $controller_obj = $controller_name;
             }
 
-            $request_params = $this->prepareRequestData($route_http_method);
+            $ref = new \ReflectionMethod($controller_name, $callback_name);
 
-            return $controller_obj->$callback_name($request_params);
+            if($ref->getNumberOfParameters() > 0) {
+
+                if($ref->getParameters()[0]->getType() !== 'Request') {
+                    throw new \Exception("Controller function only can take parameters instance of Request");
+                }
+
+                $request_params = $this->prepareRequestData($route_http_method);
+                $response = $controller_obj->$callback_name($request_params);
+            }
+            else {
+                $response = $controller_obj->$callback_name();
+            }
+
+            $this->prepareResponseData($response);
         }
+        catch (\Exception $ex) {
+            http_response_code(500);
 
-        throw new RestFrameNotFoundException("Route Not Found");
+            print json_encode(array(
+                "message" => $ex->getMessage(),
+                "trace"   => $ex->getTrace()
+            ), JSON_PRETTY_PRINT);
+        }
     }
 
     /**
@@ -131,10 +160,10 @@ class Router {
 
                 $route_obj = new RouteModel();
 
-                $route_obj->set_route_url($route->route_url)
-                          ->set_route_http_method($route->route_http_method)
-                          ->set_route_class_obj($route->route_class_obj)
-                          ->set_route_method_name($route->route_method_name);
+                $route_obj->setRouteUrl($route->route_url)
+                          ->setRouteHttpMethod($route->route_http_method)
+                          ->setRouteClassObj($route->route_class_obj)
+                          ->setRouteMethodName($route->route_method_name);
 
                 return $route_obj;
             }
@@ -145,9 +174,9 @@ class Router {
 
     /**
      * @param $http_method
-     * @return array
+     * @return Request
      */
-    private function prepareRequestData($http_method) : array
+    private function prepareRequestData($http_method) : Request
     {
         $params = array();
 
@@ -172,14 +201,19 @@ class Router {
             break;
         }
 
-        return $params;
+        $request = new Request();
+
+        $request->setParams($params)
+                ->setHeaders(apache_request_headers());
+
+        return $request;
     }
 
     /**
      * @param $comment_doc
      * @return mixed|null
      */
-    private function getRouteComment($comment_doc)
+    private function getRouteComment($comment_doc) : mixed
     {
         try {
             $comment_doc = str_replace("/**", "", $comment_doc);
@@ -189,7 +223,7 @@ class Router {
 
             foreach ($comment_array as $comment_line) {
 
-                if(strpos($comment_line, "@Router") !== false) {
+                if(str_contains($comment_line, "@Router")) {
 
                     $first_split = explode("(", $comment_line)[1];
                     $second_split = explode(")", $first_split)[0];
@@ -204,5 +238,29 @@ class Router {
         catch (\Exception $ex) {
             return null;
         }
+    }
+
+    /**
+     * @param $response
+     * @return void
+     */
+    private function prepareResponseData($response) : void
+    {
+        if(!($response instanceof Response)) {
+
+            http_response_code(500);
+
+            print json_encode(array(
+                "message" => "The return must be an instance of Response"
+            ), JSON_PRETTY_PRINT);
+        }
+
+        http_response_code($response->getStatusCode());
+
+        foreach($response->getHeaders() as $key => $value) {
+            header($key . ": " . $value);
+        }
+
+        print json_encode($response->getContent(), JSON_PRETTY_PRINT);
     }
 }
