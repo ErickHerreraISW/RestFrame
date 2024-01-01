@@ -5,7 +5,6 @@ namespace src\Middleware;
 use Core\Interface\MiddlewareInterface;
 use Core\Model\Request;
 use Core\Model\Response;
-use src\Helper\HttpResponse\HttpExceptionResponses;
 
 class TestMiddleware implements MiddlewareInterface
 {
@@ -22,10 +21,10 @@ class TestMiddleware implements MiddlewareInterface
     }
 
     /**
-     * @return mixed
+     * @return true|Response
      * @throws \Exception
      */
-    public function build(): mixed
+    public function build(): true|Response
     {
         if(!isset($this->request->getHeaders()["Authorization"])) {
             return new Response(array(
