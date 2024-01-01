@@ -1,0 +1,7 @@
+<?php
+require_once "autoload.php";
+
+use Core\Console\CommandPerformer;
+
+$command = new CommandPerformer();
+$command->executeCommand($argv);

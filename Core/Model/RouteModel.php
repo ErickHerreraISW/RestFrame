@@ -15,9 +15,9 @@ class RouteModel {
     private string $route_http_method;
 
     /**
-     * @var string
+     * @var mixed
      */
-    private string $route_class_obj;
+    private mixed $route_class_obj;
 
     /**
      * @var string
@@ -66,18 +66,18 @@ class RouteModel {
     }
 
     /**
-     * @return string
+     * @return mixed
      */
-    public function getRouteClassObj(): string
+    public function getRouteClassObj(): mixed
     {
         return $this->route_class_obj;
     }
 
     /**
-     * @param string $route_class_obj
+     * @param mixed $route_class_obj
      * @return RouteModel
      */
-    public function setRouteClassObj(string $route_class_obj): RouteModel
+    public function setRouteClassObj(mixed $route_class_obj): RouteModel
     {
         $this->route_class_obj = $route_class_obj;
         return $this;
